@@ -5,9 +5,13 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const verifyToken = require("../middleware/auth");
 
-// Register User
+// Register a new user
 router.post("/create", async (req, res, next) => {
   const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
 
   try {
     const existingUser = await User.findOne({ email });
@@ -17,13 +21,23 @@ router.post("/create", async (req, res, next) => {
 
     const newUser = new User({ username, email, password });
     await newUser.save();
-    res.status(201).json({ message: "User created successfully" });
+
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+    res.status(201).json({
+      token,
+      user: {
+        id: newUser._id,
+        name: newUser.username,
+        email: newUser.email,
+      },
+    });
   } catch (err) {
     next(err);
   }
 });
 
-// Login User
+// Login a user
 router.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -34,27 +48,30 @@ router.post("/login", async (req, res, next) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
     res.json({
       token,
-      userId: user._id,
-      name: user.username, // Include username for frontend
-      email: user.email,   // Include email for frontend
+      user: {
+        id: user._id,
+        name: user.username,
+        email: user.email,
+      },
     });
   } catch (err) {
     next(err);
   }
 });
 
-// Get User Details (Protected Route)
+// Get current user (protected route)
 router.get("/me", verifyToken, async (req, res, next) => {
   try {
     const user = await User.findById(req.userId).select("-password");
@@ -62,7 +79,7 @@ router.get("/me", verifyToken, async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
     res.json({
-      data: {
+      user: {
         id: user._id,
         name: user.username,
         email: user.email,

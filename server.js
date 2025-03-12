@@ -1,12 +1,11 @@
 require("dotenv").config();
-console.log("JWT_SECRET:", process.env.JWT_SECRET);
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
 const imageRoutes = require("./routes/imageRoutes");
+const qrCodeRoutes = require("./routes/qrCodeRoutes");
 const errorMiddleware = require("./middleware/error");
 
 const app = express();
@@ -25,6 +24,7 @@ mongoose
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api", imageRoutes);
+app.use("/api/qrcodes", qrCodeRoutes);
 
 // Error Handling Middleware
 app.use(errorMiddleware);
