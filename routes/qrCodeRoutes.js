@@ -43,29 +43,27 @@ router.post("/", verifyToken, async (req, res, next) => {
   }
 });
 
-// Add GET endpoint to fetch QR codes for the authenticated user
 router.get("/", verifyToken, async (req, res, next) => {
   try {
-    const qrCodes = await QRCode.find({ userId: req.userId }).select("-__v"); // Exclude __v field if not needed
+    const qrCodes = await QRCode.find({ userId: req.userId }).select("-__v");
     res.json({ qrCodes });
   } catch (err) {
     next(err);
   }
 });
 
-// Delete QR Code
 router.delete("/:id", verifyToken, async (req, res, next) => {
-    const { id } = req.params;
-  
-    try {
-      const qrCode = await QRCode.findOneAndDelete({ _id: id, userId: req.userId });
-      if (!qrCode) {
-        return res.status(404).json({ message: "QR code not found or unauthorized" });
-      }
-      res.json({ message: "QR code deleted successfully" });
-    } catch (err) {
-      next(err);
+  const { id } = req.params;
+
+  try {
+    const qrCode = await QRCode.findOneAndDelete({ _id: id, userId: req.userId });
+    if (!qrCode) {
+      return res.status(404).json({ message: "QR code not found or unauthorized" });
     }
-  });
+    res.json({ message: "QR code deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = router;
