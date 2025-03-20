@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
 const imageRoutes = require("./routes/imageRoutes");
 const qrCodeRoutes = require("./routes/qrCodeRoutes");
+const pdfRoutes = require("./routes/pdfRoutes"); 
 const errorMiddleware = require("./middleware/error");
 
 const app = express();
@@ -23,8 +24,10 @@ mongoose
 
 // Routes
 app.use("/api/users", userRoutes);
-app.use("/api", imageRoutes);
 app.use("/api/qrcodes", qrCodeRoutes);
+app.use("/api/pdfs", pdfRoutes);
+app.use("/api/images", imageRoutes); 
+
 
 // Error Handling Middleware
 app.use(errorMiddleware);
